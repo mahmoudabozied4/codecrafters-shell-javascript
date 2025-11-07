@@ -8,8 +8,13 @@ const rl = readline.createInterface({
 // TODO: Uncomment the code below to pass the first stage
 function prompt () {
     rl.question("$ ", (answer) => {
-        if (answer === "exit 0") {
-            rl.close();
+        let ans = answer.trim();
+        if (ans.startsWith('echo ')){
+            console.log(ans.slice(5));
+            prompt();
+            return;
+        }
+        if (ans === "exit 0") {
             return;
         }
         console.log(`${answer}: command not found`) ;
