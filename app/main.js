@@ -5,6 +5,15 @@ const rl = readline.createInterface({
     output: process.stdout,
 });
 
+function isExecutable(filePath) {
+    try {
+        fs.accessSync(filePath, fs.constants.X_OK);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 function prompt() {
     rl.question("$ ", (answer) => {
         let ans = answer.trim();
@@ -24,15 +33,23 @@ function prompt() {
 
         // type commend
         if (ans.startsWith("type ")) {
-            if (ans.slice(5) === "echo" || ans.slice(5) === "exit" || ans.slice(5) === "type") {
-                console.log(`${ans.slice(5)} is a shell builtin`);
-            }else {
-                console.log(`${ans.slice(5)}: not found`);
+            const arg = ans.slice(5).trim();
+            // Builtins
+            if (["echo", "exit", "type"].includes(arg)) {
+                console.log(`${arg} is a shell builtin`);
+                return;
             }
-            prompt();
-            return;
+            const pathDirs = process.env.PATH.split(path.delimiter);
+            // Search in PATH
+            for (const dir of pathDirs) {
+                const fullPath = path.join(dir, arg);
+                if (fs.existsSync(fullPath) && isExecutable(fullPath)) {
+                    console.log(`${arg} is ${fullPath}`);
+                    return;
+                }
+            }
+            console.log(`${arg}: not found`);
         }
-
         // unknown command
         if (ans !== "") {
             console.log(`${ans}: command not found`);
