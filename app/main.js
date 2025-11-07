@@ -5,19 +5,28 @@ const rl = readline.createInterface({
     output: process.stdout,
 });
 
-// TODO: Uncomment the code below to pass the first stage
-function prompt () {
+function prompt() {
     rl.question("$ ", (answer) => {
         let ans = answer.trim();
-        if (ans.startsWith('echo ')){
+
+        // echo command
+        if (ans.startsWith("echo ")) {
             console.log(ans.slice(5));
             prompt();
             return;
         }
+
+        // exit command
         if (ans === "exit 0") {
+            rl.close();
             return;
         }
-        console.log(`${answer}: command not found`) ;
+
+        // unknown command
+        if (ans !== "") {
+            console.log(`${ans}: command not found`);
+        }
+
         prompt();
     });
 }
