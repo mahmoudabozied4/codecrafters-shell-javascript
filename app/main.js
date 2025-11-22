@@ -71,9 +71,15 @@ function prompt() {
                 return;
             }
             let newPath;
-            if (target.startsWith("/")){
+
+            if (target === "~") {
+                const home = process.env.HOME;
+                newPath = home;
+            }
+
+            if (target.startsWith("/")) {
                 newPath = target;
-            }else {
+            } else {
                 newPath = path.resolve(process.cwd(), target);
             }
             try {
