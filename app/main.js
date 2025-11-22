@@ -71,7 +71,7 @@ function prompt() {
             }
 
             // Builtins
-            if (["echo", "exit", "type"].includes(arg)) {
+            if (["echo", "exit", "type", "pwd"].includes(arg)) {
                 console.log(`${arg} is a shell builtin`);
                 prompt();
                 return;
