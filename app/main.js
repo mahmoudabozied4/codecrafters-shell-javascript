@@ -76,8 +76,7 @@ function prompt() {
                 const home = process.env.HOME;
                 newPath = home;
             }
-
-            if (target.startsWith("/")) {
+            else if (target.startsWith("/")) {
                 newPath = target;
             } else {
                 newPath = path.resolve(process.cwd(), target);
