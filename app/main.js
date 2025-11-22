@@ -65,13 +65,19 @@ function prompt() {
 
         if (cmd === "cd") {
             const target = args[0];
-            if (!target || !target.startsWith("/")) {
+            if (!target) {
                 // Do nothing silently
                 prompt();
                 return;
             }
+            let newPath;
+            if (target.startsWith("/")){
+                newPath = target;
+            }else {
+                newPath = path.resolve(process.cwd(), target);
+            }
             try {
-                process.chdir(target);
+                process.chdir(newPath);
             } catch {
                 console.log(`cd: ${target}: No such file or directory`);
             }
