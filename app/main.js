@@ -1,6 +1,7 @@
 const readline = require("readline");
 const fs = require("fs");
 const path = require("path");
+const { spawn } = require("child_process");
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -16,26 +17,52 @@ function isExecutable(filePath) {
     }
 }
 
+function findExecutable(cmd) {
+    const pathDirs = process.env.PATH.split(path.delimiter);
+
+    for (const dir of pathDirs) {
+        const fullPath = path.join(dir, cmd);
+        if (fs.existsSync(fullPath) && isExecutable(fullPath)) {
+            return fullPath;
+        }
+    }
+    return null;
+}
+
 function prompt() {
     rl.question("$ ", (answer) => {
         let ans = answer.trim();
+        const parts = ans.split(/\s+/);
+        const cmd = parts[0];
+        const args = parts.slice(1);
+
+        // empty input
+        if (ans === "") {
+            prompt();
+            return;
+        }
 
         // echo command
-        if (ans.startsWith("echo ")) {
-            console.log(ans.slice(5));
+        if (cmd === "echo") {
+            console.log(parts.slice(1).join(" "));
             prompt();
             return;
         }
 
         // exit command
-        if (ans === "exit" || ans === "exit 0") {
+        if (cmd === "exit") {
             rl.close();
             return;
         }
 
         // type command
-        if (ans.startsWith("type ")) {
-            const arg = ans.slice(5).trim();
+        if (cmd === "type") {
+            const arg = args[0];
+
+            if (!arg) {
+                prompt();
+                return;
+            }
 
             // Builtins
             if (["echo", "exit", "type"].includes(arg)) {
@@ -44,31 +71,35 @@ function prompt() {
                 return;
             }
 
-            const pathDirs = process.env.PATH.split(path.delimiter);
-
-            // Search in PATH
-            for (const dir of pathDirs) {
-                const fullPath = path.join(dir, arg);
-                if (fs.existsSync(fullPath) && isExecutable(fullPath)) {
-                    console.log(`${arg} is ${fullPath}`);
-                    prompt();
-                    return;
-                }
+            // Search PATH
+            const found = findExecutable(arg);
+            if (found) {
+                console.log(`${arg} is ${found}`);
+            } else {
+                console.log(`${arg}: not found`);
             }
 
-            console.log(`${arg}: not found`);
             prompt();
             return;
         }
 
-        // unknown command
-        if (ans !== "") {
-            console.log(`${ans}: command not found`);
+        // Try to run external executable
+        const executable = findExecutable(cmd);
+
+        if (executable) {
+            const child = spawn(executable, args, { stdio: "inherit" });
+
+            child.on("exit", () => {
+                prompt();
+            });
+
+            return;
         }
 
+        // unknown command
+        console.log(`${cmd}: command not found`);
         prompt();
     });
 }
-
 
 prompt();
