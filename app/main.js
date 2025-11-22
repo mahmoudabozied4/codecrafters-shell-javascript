@@ -37,49 +37,73 @@ function parseArgs(input) {
 
     let inSingle = false;
     let inDouble = false;
+    let escapeNext = false;
 
     while (i < input.length) {
         const c = input[i];
+        // HANDLE BACKSLASH OUTSIDE QUOTES
 
+        if (!inSingle && !inDouble && c === "\\" && !escapeNext) {
+            // Escape the next character literally
+            escapeNext = true;
+            i++;
+            continue;
+        }
+
+        if (escapeNext) {
+            // Literal next character
+            current += c;
+            escapeNext = false;
+            i++;
+            continue;
+        }
+
+        // INSIDE SINGLE QUOTES
         if (inSingle) {
-            // Inside single quotes → literal until next '
             if (c === "'") {
                 inSingle = false;
             } else {
                 current += c;
             }
+            i++;
+            continue;
         }
 
-        else if (inDouble) {
-            // Inside double quotes → literal until next "
+        // INSIDE DOUBLE QUOTES
+        if (inDouble) {
             if (c === '"') {
                 inDouble = false;
             } else {
                 current += c;
             }
+            i++;
+            continue;
         }
 
+        // OUTSIDE QUOTES
+        if (c === "'") {
+            inSingle = true;
+        }
+        else if (c === '"') {
+            inDouble = true;
+        }
+        else if (/\s/.test(c)) {
+            // whitespace ends an argument
+            if (current.length > 0) {
+                args.push(current);
+                current = "";
+            }
+        }
         else {
-            // Not inside quotes
-            if (c === "'") {
-                inSingle = true;
-            }
-            else if (c === '"') {
-                inDouble = true;
-            }
-            else if (/\s/.test(c)) {
-                // whitespace ends token (only outside quotes)
-                if (current.length > 0) {
-                    args.push(current);
-                    current = "";
-                }
-            }
-            else {
-                current += c;
-            }
+            current += c;
         }
 
         i++;
+    }
+
+    // leftover escape at end: treat "\" as literal
+    if (escapeNext) {
+        current += "\\";
     }
 
     if (current.length > 0) {
