@@ -75,6 +75,7 @@ function prompt() {
             } catch {
                 console.log(`cd: ${target}: No such file or directory`);
             }
+            prompt();
             return;
         }
 
