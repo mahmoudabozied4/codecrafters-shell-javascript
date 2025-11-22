@@ -1,7 +1,7 @@
 const readline = require("readline");
 const fs = require("fs");
 const path = require("path");
-const { spawn } = require("child_process");
+const {spawn} = require("child_process");
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -56,6 +56,11 @@ function prompt() {
             return;
         }
 
+        if (cmd === "pwd") {
+            console.log(process.cwd());
+            prompt();
+            return;
+        }
         // type builtin
         if (cmd === "type") {
             const arg = args[0];
@@ -90,7 +95,7 @@ function prompt() {
         if (executable) {
             const child = spawn(executable, args, {
                 stdio: "inherit",
-                argv0: cmd   // IMPORTANT: tester requires argv[0] to be the program name
+                argv0: cmd
             });
 
             child.on("exit", () => {
