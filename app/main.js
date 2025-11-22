@@ -56,11 +56,28 @@ function prompt() {
             return;
         }
 
+        // cmd builtin
         if (cmd === "pwd") {
             console.log(process.cwd());
             prompt();
             return;
         }
+
+        if (cmd === "cd") {
+            const target = args[0];
+            if (!target || !target.startsWith("/")) {
+                // Do nothing silently
+                prompt();
+                return;
+            }
+            try {
+                process.chdir(target);
+            } catch {
+                console.log(`cd: ${target}: No such file or directory`);
+            }
+            return;
+        }
+
         // type builtin
         if (cmd === "type") {
             const arg = args[0];
@@ -71,7 +88,7 @@ function prompt() {
             }
 
             // Builtins
-            if (["echo", "exit", "type", "pwd"].includes(arg)) {
+            if (["echo", "exit", "type", "pwd", "cd"].includes(arg)) {
                 console.log(`${arg} is a shell builtin`);
                 prompt();
                 return;
