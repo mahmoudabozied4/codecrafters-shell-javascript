@@ -29,30 +29,52 @@ function findExecutable(cmd) {
 
     return null;
 }
+
 function parseArgs(input) {
     const args = [];
     let current = "";
     let i = 0;
+
     let inSingle = false;
+    let inDouble = false;
 
     while (i < input.length) {
         const c = input[i];
 
         if (inSingle) {
+            // Inside single quotes → literal until next '
             if (c === "'") {
-                inSingle = false; // end quote
+                inSingle = false;
             } else {
-                current += c; // literal inside quotes
+                current += c;
             }
-        } else {
+        }
+
+        else if (inDouble) {
+            // Inside double quotes → literal until next "
+            if (c === '"') {
+                inDouble = false;
+            } else {
+                current += c;
+            }
+        }
+
+        else {
+            // Not inside quotes
             if (c === "'") {
-                inSingle = true; // begin quote
-            } else if (/\s/.test(c)) {
+                inSingle = true;
+            }
+            else if (c === '"') {
+                inDouble = true;
+            }
+            else if (/\s/.test(c)) {
+                // whitespace ends token (only outside quotes)
                 if (current.length > 0) {
                     args.push(current);
                     current = "";
                 }
-            } else {
+            }
+            else {
                 current += c;
             }
         }
