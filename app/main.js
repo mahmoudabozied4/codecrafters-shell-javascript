@@ -29,6 +29,43 @@ function findExecutable(cmd) {
 
     return null;
 }
+function parseArgs(input) {
+    const args = [];
+    let current = "";
+    let i = 0;
+    let inSingle = false;
+
+    while (i < input.length) {
+        const c = input[i];
+
+        if (inSingle) {
+            if (c === "'") {
+                inSingle = false; // end quote
+            } else {
+                current += c; // literal inside quotes
+            }
+        } else {
+            if (c === "'") {
+                inSingle = true; // begin quote
+            } else if (/\s/.test(c)) {
+                if (current.length > 0) {
+                    args.push(current);
+                    current = "";
+                }
+            } else {
+                current += c;
+            }
+        }
+
+        i++;
+    }
+
+    if (current.length > 0) {
+        args.push(current);
+    }
+
+    return args;
+}
 
 function prompt() {
     rl.question("$ ", (answer) => {
@@ -39,7 +76,7 @@ function prompt() {
             return;
         }
 
-        const parts = ans.split(/\s+/);
+        const parts = parseArgs(ans);
         const cmd = parts[0];
         const args = parts.slice(1);
 
