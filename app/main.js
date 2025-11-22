@@ -71,14 +71,30 @@ function parseArgs(input) {
 
         // INSIDE DOUBLE QUOTES
         if (inDouble) {
-            if (c === '"') {
-                inDouble = false;
-            } else {
-                current += c;
+            if (c === "\\") {
+                const next = input[i + 1];
+
+                if (next === '"' || next === "\\") {
+                    // Only \" and \\ are escaped in this stage
+                    current += next;
+                    i += 2;
+                } else {
+                    // Backslash is literal
+                    current += "\\";
+                    i++;
+                }
             }
-            i++;
+            else if (c === '"') {
+                inDouble = false;
+                i++;
+            }
+            else {
+                current += c;
+                i++;
+            }
             continue;
         }
+
 
         // OUTSIDE QUOTES
         if (c === "'") {
