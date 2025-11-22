@@ -26,36 +26,37 @@ function findExecutable(cmd) {
             return fullPath;
         }
     }
+
     return null;
 }
 
 function prompt() {
     rl.question("$ ", (answer) => {
         let ans = answer.trim();
-        const parts = ans.split(/\s+/);
-        const cmd = parts[0];
-        const args = parts.slice(1);
 
-        // empty input
         if (ans === "") {
             prompt();
             return;
         }
 
-        // echo command
+        const parts = ans.split(/\s+/);
+        const cmd = parts[0];
+        const args = parts.slice(1);
+
+        // echo builtin
         if (cmd === "echo") {
-            console.log(parts.slice(1).join(" "));
+            console.log(args.join(" "));
             prompt();
             return;
         }
 
-        // exit command
+        // exit builtin
         if (cmd === "exit") {
             rl.close();
             return;
         }
 
-        // type command
+        // type builtin
         if (cmd === "type") {
             const arg = args[0];
 
@@ -83,11 +84,14 @@ function prompt() {
             return;
         }
 
-        // Try to run external executable
+        // External program execution
         const executable = findExecutable(cmd);
 
         if (executable) {
-            const child = spawn(executable, args, { stdio: "inherit" });
+            const child = spawn(executable, args, {
+                stdio: "inherit",
+                argv0: cmd   // IMPORTANT: tester requires argv[0] to be the program name
+            });
 
             child.on("exit", () => {
                 prompt();
@@ -96,7 +100,7 @@ function prompt() {
             return;
         }
 
-        // unknown command
+        // Unknown command
         console.log(`${cmd}: command not found`);
         prompt();
     });
